@@ -1,0 +1,14 @@
+package robot_control;
+
+struct obs_lcmt
+{   
+    int64_t timestamp_us;
+    double base_lin_vel[3];
+    double base_ang_vel[3];
+    double gravity[3];
+    double commands[4];
+    double pos[12];
+    double vel[12];
+    double torque[12];
+    float terrain[187];
+}

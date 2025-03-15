@@ -1,0 +1,7 @@
+package robot_control;
+
+struct actions_lcmt
+{
+    int64_t timestamp_us;
+    double torque[12];
+}
