@@ -36,7 +36,7 @@ add_executable(SDUOG-sim2sim
 )
 
 # 链接库配置
-target_link_libraries(SDUOG-sim2sim
+target_link_libraries(SDUOG-sim2sim-webots
     Controller
     lcm
     pthread  # 如果使用多线程需要添加
