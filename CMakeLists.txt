@@ -31,7 +31,7 @@ file(GLOB_RECURSE SOURCE_FILES
 )
 
 # 创建可执行文件
-add_executable(SDUOG-sim2sim 
+add_executable(SDUOG-sim2sim-webots 
     ${SOURCE_FILES}
 )
 
@@ -43,7 +43,7 @@ target_link_libraries(SDUOG-sim2sim-webots
 )
 
 # 现代CMake风格包含目录配置
-target_include_directories(SDUOG-sim2sim PRIVATE
+target_include_directories(SDUOG-sim2sim-webots PRIVATE
     include
     ${LCM_INCLUDE_DIRS}
     ${WEBOTS_HOME}/include/controller/c
@@ -51,6 +51,6 @@ target_include_directories(SDUOG-sim2sim PRIVATE
 )
 
 # 安装规则（可选）
-install(TARGETS SDUOG-sim2sim
+install(TARGETS SDUOG-sim2sim-webots
     RUNTIME DESTINATION bin
 )
