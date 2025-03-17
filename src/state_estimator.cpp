@@ -51,7 +51,7 @@ void StateEstimator::update(const Vector4d& quat,
     Vector3d kinematic_vel = compute_kinematic_velocity(joint_pos, contact_states);
 
     // 卡尔曼滤波更新
-    update_kalman_filter(world_accel, kinematic_vel);
+    update_kalman_filter(world_accel);
 
     // 地形估计
     estimate_height_and_slope(joint_pos, contact_states);
@@ -94,22 +94,15 @@ Vector3d StateEstimator::compute_kinematic_velocity(const Vector12d& joint_pos,
 }
 
 // 卡尔曼滤波更新
-void StateEstimator::update_kalman_filter(const Vector3d& accel, const Vector3d& z_kinematic) {
-    // 预测步骤
+void StateEstimator::update_kalman_filter(const Vector3d& accel) {
+    // 预测步骤：加速度积分
     kf_velocity_ += accel * dt_;
     kf_P_ += kf_Q_;
 
-    // 加速度计更新
+    // 加速度计更新（仅保留加速度观测）
     Matrix3d K_accel = kf_P_ * (kf_P_ + kf_R_accel_).inverse();
     kf_velocity_ += K_accel * (accel * dt_ - kf_velocity_);
     kf_P_ = (Matrix3d::Identity() - K_accel) * kf_P_;
-
-    // 运动学观测更新
-    if(z_kinematic.norm() > 0.1) { // 有效速度阈值
-        Matrix3d K_kinematic = kf_P_ * (kf_P_ + kf_R_kinematic_).inverse();
-        kf_velocity_ += K_kinematic * (z_kinematic - kf_velocity_);
-        kf_P_ = (Matrix3d::Identity() - K_kinematic) * kf_P_;
-    }
 
     filtered_velocity_ = kf_velocity_;
 }

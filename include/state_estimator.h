@@ -50,7 +50,7 @@ private:
     // 核心估计算法
     Vector3d compute_kinematic_velocity(const Vector12d& joint_pos,
                                        const std::array<bool,4>& contact_states);
-    void update_kalman_filter(const Vector3d& accel, const Vector3d& z_kinematic);
+    void update_kalman_filter(const Vector3d& accel);
     Matrix3d compute_jacobian(int leg_id, const Vector3d& joint_angles) const;
     Vector3d forward_kinematics(int leg_id, const Vector3d& angles) const;
     
