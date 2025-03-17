@@ -159,8 +159,8 @@ void RobotModel::slowToStandingPosition() {
             wb_motor_set_torque(motors_[i], torque);
             if(i==0||i==3||i==1||i==2||i==7||i==8) motor_data_last[i] = wb_position_sensor_get_value(sensors_[i])*(-1);
             else motor_data_last[i] = wb_position_sensor_get_value(sensors_[i]);
-            motor_data_last[i + 24] = torque;
-            joint_torques_[i] = static_cast<float>(torque);
+            motor_data_last[i + 24] = desired_pos[i]/ACTION_SCALE; // 这里是将站立后最后一刻的目标位置作为action回传给强化学习策略
+            joint_torques_[i] = torque;
         }
     } else {
         // 过渡完成后保持目标位置
@@ -172,8 +172,8 @@ void RobotModel::slowToStandingPosition() {
             wb_motor_set_torque(motors_[i], torque);
             if(i==0||i==3||i==1||i==2||i==7||i==8) motor_data_last[i] =wb_position_sensor_get_value(sensors_[i])*(-1);
             else motor_data_last[i] = wb_position_sensor_get_value(sensors_[i]);
-            motor_data_last[i + 24] = torque;
-            joint_torques_[i] = static_cast<float>(torque);
+            motor_data_last[i + 24] = target_joint_pos[i]/ACTION_SCALE;
+            joint_torques_[i] = torque;
             standfinish = true;
         }
     }

@@ -104,8 +104,8 @@ private:
     double ang_vel[3];
     double v[3] = {0, 0, -1};
     double alpha = 0.1; // 滤波系数
-    double Kp_stiffness = 40;
-    double D = 0.1;
+    double Kp_stiffness = 20;
+    double D = 0.5;
     const double ACTION_SCALE = 0.25; // 动作缩放系数
     const double velocity_decay_factor = 0.99; // 速度衰减系数
     double torque;
