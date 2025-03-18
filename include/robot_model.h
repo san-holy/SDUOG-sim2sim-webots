@@ -27,6 +27,7 @@ public:
     double base_ang_vel[3];
     double gravity[3];
     double motor_data[36];
+    double ACTIONS[12];
     double motor_data_error[12];
     bool standfinish = false; // 是否完成站立姿态渐进
     int time_step_;

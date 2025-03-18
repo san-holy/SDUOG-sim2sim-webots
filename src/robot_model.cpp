@@ -405,9 +405,12 @@ void RobotModel::applyTorques(const double* torques) {
         torque = 0;
         torque = Kp_stiffness * (torques[i] * ACTION_SCALE + default_dof_pos[i] - motor_data[i]) - D * motor_data[i+12];
         // std::cout << "torque: " << torque << std::endl;
+        torque = torque > 48.0 ? 48.0 : torque;
+        torque = torque < -48.0 ? -48.0 : torque;
         if(i==0||i==3||i==1||i==2||i==7||i==8) torque*=-1;
         wb_motor_set_torque(motors_[i], torque);
         motor_data_last[i + 24] = torques[i];
+        ACTIONS[i] = torques[i]; // 保存动作
         joint_torques_[i] = static_cast<float>(torque);
     }
 }
