@@ -1,0 +1,9 @@
+package exlcm;
+
+struct example_t
+{
+    
+
+    int32_t buffer[15];
+                    
+}
