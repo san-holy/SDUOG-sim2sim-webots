@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "terrain_estimator.h"
 #include <iostream>
+#include "include/controller_listener.h"
 
 #define TIME_STEP 5
 
@@ -54,7 +55,23 @@ int main(int argc, char **argv) {
         terrain.estimateTerrain();
 
         const auto& heights = terrain.getHeightMeasurements();
-        
+        //if(收到心跳包){
+            lcm::LCM lcm("udpm://239.255.76.67:7667?ttl=255");
+            if (!lcm.good()) {
+                std::cerr << "LCM initialization failed!" << std::endl;
+            }
+
+            GamepadHandler handler;
+
+            // 订阅频道
+            lcm.subscribe("GAMEPAD_MODE", &GamepadHandler::handleMessage, &handler);
+            commands[0]=static_cast<double>handler.speed_x;
+            commands[1]=static_cast<double>handler.speed_y;
+            commands[2]=static_cast<double>handler.yaw;
+            commands[3]=static_cast<double>handler.height;
+            //这里将原来GamepadHandler中handleMessage函数内置的四个元素拿了出来，直接归属于GamepadHandler类，
+            //这样方便改变commands的值，下面的lcm_handler.publishObs函数就不需要再改了
+        //}
         // 处理LCM消息
         for (int i = 0 ; i < 4 ; i++){
             if (i ==0) lcm_handler.publishObs(computeObs(robot.getTorsoVelocity(), robot.getAngularVelocity(), robot.gravity, commands, robot.motor_data_error, robot.motor_data, heights, timer));
