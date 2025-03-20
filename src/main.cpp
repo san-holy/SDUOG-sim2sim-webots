@@ -4,7 +4,7 @@
 #include "utils.h"
 #include "terrain_estimator.h"
 #include <iostream>
-#include "include/controller_listener.h"
+#include "controller_listener.h"
 
 #define TIME_STEP 5
 
@@ -41,7 +41,9 @@ int main(int argc, char **argv) {
     TerrainEstimator terrain(robot);
     DataLogger logger("log.csv");
     TorqueBuffer buffer;
+    controller_ToqueBuffer controller_buffer;
     LCMHandler lcm_handler(buffer);
+    controller_LCMHandler controller_lcm_handler(controller_buffer);
 
     double commands[4] = {0.5, 0, 0, 0.25};
     
@@ -55,20 +57,19 @@ int main(int argc, char **argv) {
         terrain.estimateTerrain();
 
         const auto& heights = terrain.getHeightMeasurements();
+
+        
         //if(收到心跳包){
-            lcm::LCM lcm("udpm://239.255.76.67:7667?ttl=255");
-            if (!lcm.good()) {
-                std::cerr << "LCM initialization failed!" << std::endl;
+            exlcm::example_t example_msg;
+            GamepadHandler gamepad_handler;
+            //gamepad_handler.handleMessage(&example_msg);
+            bool has_commands = controller_buffer.try_pop(example_msg);
+            if (has_commands) {
+                commands[0] = static_cast<double>(gamepad_handler.speed_x);
+                commands[1] = static_cast<double>(gamepad_handler.speed_y);
+                commands[2] = static_cast<double>(gamepad_handler.yaw);
+                commands[3] = static_cast<double>(gamepad_handler.height);
             }
-
-            GamepadHandler handler;
-
-            // 订阅频道
-            lcm.subscribe("GAMEPAD_MODE", &GamepadHandler::handleMessage, &handler);
-            commands[0]=static_cast<double>handler.speed_x;
-            commands[1]=static_cast<double>handler.speed_y;
-            commands[2]=static_cast<double>handler.yaw;
-            commands[3]=static_cast<double>handler.height;
             //这里将原来GamepadHandler中handleMessage函数内置的四个元素拿了出来，直接归属于GamepadHandler类，
             //这样方便改变commands的值，下面的lcm_handler.publishObs函数就不需要再改了
         //}

@@ -1,9 +1,10 @@
+#pragma once
 #ifndef controller_listener_h
 #define controller_listener_h
 
 #include <lcm/lcm-cpp.hpp>
 #include <iostream>
-#include "deploy/deploy_lcm/msg_lcm/robot_control/exlcm/example_t.hpp"  // 引入头文件
+#include "exlcm/example_t.hpp"  // 引入头文件
 
 
 class GamepadHandler {
