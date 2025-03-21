@@ -13,10 +13,10 @@ LCMHandler::LCMHandler(TorqueBuffer& buffer) : buffer_(buffer), running_(true) {
         });
     }
 }
- controller_LCMHandler::controller_LCMHandler(controller_ToqueBuffer& buffer): buffer_(buffer),lcm("udpm://239.255.76.67:7667?ttl=255"),running_(true){
+controller_LCMHandler::controller_LCMHandler(controller_ToqueBuffer& buffer): buffer_(buffer),lcm("udpm://239.255.76.67:7667?ttl=255"),running_(true){
     if(lcm.good()){
-        GamepadHandler gamepad_handler;
-        lcm.subscribe("GAMEPAD_MODE", &GamepadHandler::handleMessage,&gamepad_handler);
+
+        lcm.subscribe("GAMEPAD_MODE", &controller_LCMHandler::handleMessage, this);
         lcm_thread_ = std::thread([this]() {
             while(running_){lcm.handleTimeout(1);}
     });

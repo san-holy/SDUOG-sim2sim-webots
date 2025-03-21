@@ -13,7 +13,7 @@ class GamepadHandler {
         float speed_y;  
         float yaw;
         float height;
-        void handleMessage(const lcm::ReceiveBuffer* rbuf, const std::string& channel, const exlcm::example_t* msg);
+        void handleMessage(const exlcm::example_t* msg);
     };
 
 #endif

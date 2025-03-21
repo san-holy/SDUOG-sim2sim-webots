@@ -62,6 +62,7 @@ int main(int argc, char **argv) {
         //if(收到心跳包){
             exlcm::example_t example_msg;
             GamepadHandler gamepad_handler;
+            gamepad_handler.handleMessage(&example_msg);
             //gamepad_handler.handleMessage(&example_msg);
             bool has_commands = controller_buffer.try_pop(example_msg);
             if (has_commands) {

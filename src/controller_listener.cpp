@@ -1,8 +1,7 @@
 #include "controller_listener.h"
 
-void GamepadHandler::handleMessage(const lcm::ReceiveBuffer* rbuf, const std::string& channel, const exlcm::example_t* msg) {
+void GamepadHandler::handleMessage(const exlcm::example_t* msg) {
         
-
     yaw = (float)msg->buffer[5] / 32768.0f; 
     height = 0.15f + (float)msg->buffer[6] * (0.25f / 65535.0f);
     std::cout << " yaw:" << yaw << " rad/s" << std::endl;
