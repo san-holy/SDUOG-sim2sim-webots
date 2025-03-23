@@ -3,7 +3,9 @@
 void GamepadHandler::handleMessage(const exlcm::example_t* msg) {
         
     yaw = (float)msg->buffer[5] / 32768.0f;
+    //yaw*=-1;
     yaw*=-1; 
+    //height=0.15f+(-(float)msg->buffer[6]+32768.0f)*(0.20f/65535.0f);
     height=0.15f+(-(float)msg->buffer[6]+32768.0f)*(0.20f/65535.0f);
     std::cout << " yaw:" << yaw << " rad/s" << std::endl;
     std::cout << "height: " << height << " m" << std::endl;  
