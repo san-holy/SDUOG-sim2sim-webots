@@ -2,8 +2,9 @@
 
 void GamepadHandler::handleMessage(const exlcm::example_t* msg) {
         
-    yaw = (float)msg->buffer[5] / 32768.0f; 
-    height = 0.15f + (float)msg->buffer[6] * (0.25f / 65535.0f);
+    yaw = (float)msg->buffer[5] / 32768.0f;
+    yaw*=-1; 
+    height=0.15f+(-(float)msg->buffer[6]+32768.0f)*(0.20f/65535.0f);
     std::cout << " yaw:" << yaw << " rad/s" << std::endl;
     std::cout << "height: " << height << " m" << std::endl;  
     switch (msg->buffer[0]) {
@@ -20,8 +21,8 @@ void GamepadHandler::handleMessage(const exlcm::example_t* msg) {
             speed_x =-(float) msg->buffer[2];
             // speed_y = (float)msg->buffer[1] / 32768.0f; 
             // speed_x = (float) msg->buffer[2]/ 32768.0f; 
-            speed_x =  speed_x * (3.0f - (-2.0f))/2+0.5f;
-            speed_y =  speed_y * (3.0f - (-2.0f))/2+0.5f;   
+            speed_x =  (speed_x * (3.0f - (-2.0f))/2)/32768.0f+0.5f;
+            speed_y =  (speed_y * (3.0f - (-2.0f))/2)/32768.0f+0.5f;     
             std::cout << "Current x speed: " << speed_x << " m/s" << std::endl;
             std::cout << "Current y speed: " << speed_y << " m/s" << std::endl;
             break;
