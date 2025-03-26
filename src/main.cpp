@@ -81,13 +81,14 @@ int main(int argc, char **argv) {
 
         // lcm_handler.publishObs(computeObs(robot.getTorsoVelocity(), robot.base_ang_vel, robot.gravity, commands, robot.motor_data_error, robot.motor_data, heights, timer));
         // 应用控制
-        // if (!robot.standfinish) 
-        //     robot.slowToStandingPosition();
-        // else {
+        if (!robot.standfinish) 
+            robot.slowToStandingPosition();
+        else {
             robot_control::actions_lcmt torque_msg;
             bool has_torque = buffer.try_pop(torque_msg);
             
             if (has_torque) {
+                robot.zerodriftcontrol(torque_msg.torque);
                 robot.applyTorques(torque_msg.torque);
                 robot.last_torque_time = timer; // 记录最后收到力矩的时间
             } 
@@ -97,11 +98,12 @@ int main(int argc, char **argv) {
                     robot.applyDamping(3.0); // 增强阻尼系数
                 }
                 else {
+                    robot.zerodriftcontrol(robot.ACTIONS);
                     robot.applyTorques(robot.ACTIONS);
                     // robot.applyDamping(1.0); // 普通阻尼模式
                 }
             }
-        // }
+        }
         // 记录数据
         logger.logData(timer, robot.getTorsoVelocity(), robot.base_ang_vel, robot.gravity, robot.motor_data);
     }

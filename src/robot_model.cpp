@@ -100,6 +100,9 @@ RobotModel::RobotModel(int time_step) : time_step_(time_step) {
     kalman_Q = Eigen::Matrix3f::Identity() * 0.01f;
     kalman_R = Eigen::Matrix3f::Identity() * 0.1f;
 
+    linear_zerodrift.setZero();
+    angular_zerodrift.setZero();
+
     // 初始化状态估计器
     RobotParams params;
     params.hip_offset = hip_offset;
@@ -178,24 +181,40 @@ void RobotModel::slowToStandingPosition() {
         }
     }
 }
+
 //零飘校正的函数：实现维持站立状态，将策略的动作赋值给motor_data_last[i + 24],并实现对线速度，角速度的零飘校正
-void RobotModel::zerodriftcontrol(){
-    double dt=time_step_/1000.0;
-    double timer=0.0;
-    if(standfinish){
-        while(timer<time_step_)
-        {
-            timer+=dt;
-            for(int i=0; i<12; i++){
-                double error=target_joint_pos[i]-motor_data_last[i+24];
-                double torque = standing_kp[i] * error - 
-                          standing_kd[i] * joint_velocities_[i];
-                if(i==0||i==3||i==1||i==2||i==7||i==8) torque*=-1;
-                ACTIONS[i]=torque;
-                motor_data_last[i+24]=torque;
+void RobotModel::zerodriftcontrol(const double* torques){
+    double dt = time_step_/1000.0;
+    if(!zerodriftfinish){
+        elapsed_time += dt;
+        for(int i=0; i<12; i++){
+            double error = target_joint_pos[i]-motor_data_last[i+24];
+            double torque = standing_kp[i] * error - 
+                      standing_kd[i] * joint_velocities_[i];
+            if(i==0||i==3||i==1||i==2||i==7||i==8) torque *= -1;
+            wb_motor_set_torque(motors_[i], torque);
+            ACTIONS[i] = torques[i];
+            motor_data_last[i+24] = torques[i];
+        }
+        for(int i=0; i<3; i++){
+            linear_zerodrift[i] += torso_velocity_[i];
+            angular_zerodrift[i] += angular_velocity_[i];
+        }
+        if(elapsed_time >= transition_time + 1.0){
+            zerodriftfinish = true;
+        }
+    }
+    else{
+        if(!zerodrifted) {
+            for(int i=0; i<3; i++){
+                linear_zerodrift[i] /= (elapsed_time - transition_time) * 1000.0;
+                angular_zerodrift[i] /= (elapsed_time - transition_time) * 1000.0;
             }
-        }}
+        zerodrifted = true;
+        }
+    }
 }
+
 void RobotModel::initializeDevices() {
     // 初始化电机和传感器
     for(int i = 0; i < 12; ++i) {
@@ -342,8 +361,15 @@ void RobotModel::updateSensorData() {
     const auto& contact_forces = state_estimator_->get_contact_forces();
 
     // 更新RobotModel成员变量
-    torso_velocity_ = linear_vel.cast<float>();
-    angular_velocity_ = angular_vel.cast<float>();
+    if(!zerodriftfinish){
+        torso_velocity_ = linear_vel.cast<float>();
+        angular_velocity_ = angular_vel.cast<float>();
+    }
+    else{
+        torso_velocity_ = linear_vel.cast<float>() - linear_zerodrift;
+        angular_velocity_ = angular_vel.cast<float>() - angular_zerodrift;
+    }
+
     
     // 转换接触力到世界坐标系
     foot_forces_.resize(4);

@@ -21,7 +21,7 @@ public:
     void applyTorques(const double* torques);
     void slowToStandingPosition(); // 站立姿态渐进方法
     void applyDamping(double damping_scale = 1.0);
-    void zerodriftcontrol(); // 零位移控制
+    void zerodriftcontrol(const double* torques); // 零位移控制
 
     double last_torque_time = 0; // 记录最后收到力矩的时间
 
@@ -31,6 +31,8 @@ public:
     double ACTIONS[12];
     double motor_data_error[12];
     bool standfinish = false; // 是否完成站立姿态渐进
+    bool zerodriftfinish = false; // 是否完成零位移控制
+    bool zerodrifted = false; // 是否已经进行过零位移控制
     int time_step_;
     int contact_count = 0; // 联接计数
     
@@ -119,6 +121,8 @@ private:
     std::vector<bool> contact_status_;          // 接触状态
     Eigen::Vector3f torso_velocity_;            // 融合后的躯干速度
     Eigen::Vector3f angular_velocity_;
+    Eigen::Vector3f linear_zerodrift;   // 线速度零漂
+    Eigen::Vector3f angular_zerodrift;  // 角速度零漂
     Eigen::Vector3f kinematic_vel;
 
     Eigen::Quaternionf orientation_; // 新增成员变量
