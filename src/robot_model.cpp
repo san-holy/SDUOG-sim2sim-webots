@@ -179,11 +179,11 @@ void RobotModel::slowToStandingPosition() {
     }
 }
 //零飘校正的函数：实现维持站立状态，将策略的动作赋值给motor_data_last[i + 24],并实现对线速度，角速度的零飘校正
-void RobotModel::zerodriftcontrol(double time_step){
-    double dt=time_step/1000.0;
+void RobotModel::zerodriftcontrol(){
+    double dt=time_step_/1000.0;
     double timer=0.0;
     if(standfinish){
-        while(timer<time_step)
+        while(timer<time_step_)
         {
             timer+=dt;
             for(int i=0; i<12; i++){
