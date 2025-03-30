@@ -19,6 +19,7 @@ link_directories(${WEBOTS_HOME}/lib/controller)
 # 项目包含目录
 include_directories(
     include
+    SDK
     ${LCM_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIRS}  # 添加Eigen头文件路径
 )
@@ -28,6 +29,7 @@ include_directories(./deploy/deploy_lcm/msg_lcm)
 # 源文件列表
 file(GLOB_RECURSE SOURCE_FILES 
     "src/*.cpp"
+    "SDK/*.cpp"
 )
 
 # 创建可执行文件
