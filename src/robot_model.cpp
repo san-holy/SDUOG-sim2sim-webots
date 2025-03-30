@@ -1,4 +1,4 @@
-#include "robot_model.h"
+#include "robot_model.h"//把enable使能写入初始化函数init()，作为一个新的接口，在今后只需要改动robot_model的头文件而非对其进行代码改动，使得其成为一个通用程序
 #include <iostream>
 RobotModel::RobotModel(int time_step) : time_step_(time_step) {
     // 设备初始化
