@@ -1,6 +1,5 @@
 #include "robot_model.h"
 #include <iostream>
-
 RobotModel::RobotModel(int time_step) : time_step_(time_step) {
     // 设备初始化
     // 获取电机和位置传感器设备
@@ -49,13 +48,13 @@ RobotModel::RobotModel(int time_step) : time_step_(time_step) {
     };
 
     for (int i = 0; i < 12; ++i) {
-        motors_[i] = wb_robot_get_device(motor_names[i]);
-        sensors_[i] = wb_robot_get_device(sensor_names[i]);
+        motors_[i] = robot_get_device(motor_names[i]);
+        sensors_[i] = robot_get_device(sensor_names[i]);
     }
 
-    accelerometer_ = wb_robot_get_device("accelerometer");
-    imu_ = wb_robot_get_device("inertial unit");
-    gyro_ = wb_robot_get_device("gyro");
+    accelerometer_ = robot_get_device("accelerometer");
+    imu_ = robot_get_device("inertial unit");
+    gyro_ = robot_get_device("gyro");
 
     // 初始化容器大小
     joint_positions_.resize(12);      // 12 个关节的位置
@@ -159,9 +158,9 @@ void RobotModel::slowToStandingPosition() {
             double torque = standing_kp[i] * error - 
                           standing_kd[i] * joint_velocities_[i];
             if(i==0||i==3||i==1||i==2||i==7||i==8) torque*=-1;
-            wb_motor_set_torque(motors_[i], torque);
-            if(i==0||i==3||i==1||i==2||i==7||i==8) motor_data_last[i] = wb_position_sensor_get_value(sensors_[i])*(-1);
-            else motor_data_last[i] = wb_position_sensor_get_value(sensors_[i]);
+            motor_set_torque(motors_[i], torque);
+            if(i==0||i==3||i==1||i==2||i==7||i==8) motor_data_last[i] = position_sensor_get_value(sensors_[i])*(-1.0);
+            else motor_data_last[i] = position_sensor_get_value(sensors_[i]);
             motor_data_last[i + 24] = desired_pos[i]/ACTION_SCALE; // 这里是将站立后最后一刻的目标位置作为action回传给强化学习策略
             joint_torques_[i] = torque;
         }
@@ -172,9 +171,9 @@ void RobotModel::slowToStandingPosition() {
             double torque = standing_kp[i] * error - 
                           standing_kd[i] * joint_velocities_[i];
             if(i==0||i==3||i==1||i==2||i==7||i==8) torque*=-1;
-            wb_motor_set_torque(motors_[i], torque);
-            if(i==0||i==3||i==1||i==2||i==7||i==8) motor_data_last[i] =wb_position_sensor_get_value(sensors_[i])*(-1);
-            else motor_data_last[i] = wb_position_sensor_get_value(sensors_[i]);
+            motor_set_torque(motors_[i], torque);
+            if(i==0||i==3||i==1||i==2||i==7||i==8) motor_data_last[i] =position_sensor_get_value(sensors_[i])*(-1.0);
+            else motor_data_last[i] = position_sensor_get_value(sensors_[i]);
             motor_data_last[i + 24] = target_joint_pos[i]/ACTION_SCALE;
             joint_torques_[i] = torque;
             standfinish = true;
@@ -192,7 +191,7 @@ void RobotModel::zerodriftcontrol(const double* torques){
             double torque = standing_kp[i] * error - 
                       standing_kd[i] * joint_velocities_[i];
             if(i==0||i==3||i==1||i==2||i==7||i==8) torque *= -1;
-            wb_motor_set_torque(motors_[i], torque);
+            motor_set_torque(motors_[i], torque);
             ACTIONS[i] = torques[i];
             motor_data_last[i+24] = torques[i];
         }
@@ -218,23 +217,23 @@ void RobotModel::zerodriftcontrol(const double* torques){
 void RobotModel::initializeDevices() {
     // 初始化电机和传感器
     for(int i = 0; i < 12; ++i) {
-        wb_motor_enable_torque_feedback(motors_[i], time_step_);
-        wb_position_sensor_enable(sensors_[i], time_step_);
-        wb_motor_set_velocity(motors_[i], 0);   // 设置零速度
+        motor_enable_torque_feedback(motors_[i], time_step_);
+        position_sensor_enable(sensors_[i], time_step_);
+        motor_set_velocity(motors_[i], 0);   // 设置零速度
         // motor_data_last[i] = wb_position_sensor_get_value(sensors_[i]);
         // std::cout << "Default position for motor " << i << ": " << default_dof_pos[i] << std::endl;
     }
     // std::cout << "Default positions set." << std::endl;
 
     // 初始化加速度计、IMU、陀螺仪
-    wb_accelerometer_enable(accelerometer_, time_step_);
+    accelerometer_enable(accelerometer_, time_step_);
     std::cout << "Accelerometer enabled." << std::endl;
-    wb_inertial_unit_enable(imu_, time_step_);
+    inertial_unit_enable(imu_, time_step_);
     std::cout << "IMU enabled." << std::endl;
-    wb_gyro_enable(gyro_, time_step_);
+    gyro_enable(gyro_, time_step_);
     std::cout << "Gyro enabled." << std::endl;
     
-    wb_robot_step(time_step_);
+    robot_step(time_step_);
 }
 
 // Eigen::Vector3f RobotModel::forwardKinematics(int leg) const {
@@ -298,7 +297,7 @@ void RobotModel::updateSensorData() {
     // 更新关节数据 ======== 优化数据流 ========
     for (int i = 0; i < 12; ++i) {
         // 获取原始传感器数据
-        double new_pos = wb_position_sensor_get_value(sensors_[i]);
+        double new_pos = position_sensor_get_value(sensors_[i]);
         if(i==0||i==3||i==1||i==2||i==7||i==8) new_pos*=-1;
         double new_vel = (new_pos - motor_data_last[i]) / dt;
 
@@ -326,9 +325,9 @@ void RobotModel::updateSensorData() {
     std::array<bool, 4> contact_states_array = {false, false, false, false};
 
     // 获取原始传感器数据
-    const double *accel = wb_accelerometer_get_values(accelerometer_);
-    const double *quat = wb_inertial_unit_get_quaternion(imu_);
-    const double *gyro = wb_gyro_get_values(gyro_);
+    const double *accel = accelerometer_get_values(accelerometer_);
+    const double *quat = inertial_unit_get_quaternion(imu_);
+    const double *gyro = gyro_get_values(gyro_);
 
     quat_rotate_inverse(quat, v, gravity);
 
@@ -451,7 +450,7 @@ void RobotModel::applyTorques(const double* torques) {
         torque = torque > 48.0 ? 48.0 : torque;
         torque = torque < -48.0 ? -48.0 : torque;
         if(i==0||i==3||i==1||i==2||i==7||i==8) torque*=-1;
-        wb_motor_set_torque(motors_[i], torque);
+        motor_set_torque(motors_[i], torque);
         motor_data_last[i + 24] = torques[i];
         ACTIONS[i] = torques[i]; // 保存动作
         joint_torques_[i] = static_cast<float>(torque);
@@ -474,7 +473,7 @@ void RobotModel::applyDamping(double damping_scale) {
         torque = std::clamp(torque, -MAX_TORQUE, MAX_TORQUE);
         
         if(i==0||i==3||i==1||i==2||i==7||i==8) torque*=-1;
-        wb_motor_set_torque(motors_[i], torque);
+        motor_set_torque(motors_[i], torque);
         joint_torques_[i] = static_cast<float>(torque);
     }
 }

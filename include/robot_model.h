@@ -1,14 +1,9 @@
 #pragma once
-#include <webots/robot.h>
-#include <webots/motor.h>
-#include <webots/position_sensor.h>
-#include <webots/accelerometer.h>
-#include <webots/inertial_unit.h>
-#include <webots/gyro.h>
 #include <vector>
 #include "state_estimator.h"  // 包含状态估计器头文件
 #include "utils.h"
 #include <memory>
+#include "webots_sim_SDK.h"
 
 
 class RobotModel {
