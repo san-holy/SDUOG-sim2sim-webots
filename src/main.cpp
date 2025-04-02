@@ -33,7 +33,7 @@ robot_control::obs_lcmt computeObs(const Eigen::Vector3f& lin_vel, const Eigen::
 }
 
 int main(int argc, char **argv) {
-    wb_robot_init();
+    robot_init();
 
     double timer = 0;
     
@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
     // robot.initializeDevices();
     std::cout << "robot initialized" << std::endl;
 
-    while (wb_robot_step(TIME_STEP) != -1) {
+    while (robot_step(TIME_STEP) != -1) {
         timer += TIME_STEP/1000.0;
         // std::cout << "time: " << timer << std::endl;
         robot.updateSensorData();
@@ -108,6 +108,6 @@ int main(int argc, char **argv) {
         logger.logData(timer, robot.getTorsoVelocity(), robot.base_ang_vel, robot.gravity, robot.motor_data);
     }
 
-    wb_robot_cleanup();
+    robot_cleanup();
     return 0;
 }

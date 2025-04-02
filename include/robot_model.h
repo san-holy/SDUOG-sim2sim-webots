@@ -46,11 +46,7 @@ public:
 
 private:
     
-    WbDeviceTag motors_[12];
-    WbDeviceTag sensors_[12];
-    WbDeviceTag accelerometer_;
-    WbDeviceTag imu_;
-    WbDeviceTag gyro_;
+
 
     double standing_kp[12];       // 各关节独立P增益
     double standing_kd[12];       // 各关节独立D增益

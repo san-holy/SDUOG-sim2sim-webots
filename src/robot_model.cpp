@@ -48,13 +48,12 @@ RobotModel::RobotModel(int time_step) : time_step_(time_step) {
     };
 
     for (int i = 0; i < 12; ++i) {
-        motors_[i] = robot_get_device(motor_names[i]);
-        sensors_[i] = robot_get_device(sensor_names[i]);
+        motor_and_sensor_init1(i, motor_names, sensor_names);
     }
 
-    accelerometer_ = robot_get_device("accelerometer");
-    imu_ = robot_get_device("inertial unit");
-    gyro_ = robot_get_device("gyro");
+    
+    imu_init1(); 
+    
 
     // 初始化容器大小
     joint_positions_.resize(12);      // 12 个关节的位置
@@ -217,23 +216,14 @@ void RobotModel::zerodriftcontrol(const double* torques){
 void RobotModel::initializeDevices() {
     // 初始化电机和传感器
     for(int i = 0; i < 12; ++i) {
-        motor_enable_torque_feedback(motors_[i], time_step_);
-        position_sensor_enable(sensors_[i], time_step_);
-        motor_set_velocity(motors_[i], 0);   // 设置零速度
+        motor_and_sensor_init2(i,time_step_);
         // motor_data_last[i] = wb_position_sensor_get_value(sensors_[i]);
         // std::cout << "Default position for motor " << i << ": " << default_dof_pos[i] << std::endl;
     }
     // std::cout << "Default positions set." << std::endl;
 
     // 初始化加速度计、IMU、陀螺仪
-    accelerometer_enable(accelerometer_, time_step_);
-    std::cout << "Accelerometer enabled." << std::endl;
-    inertial_unit_enable(imu_, time_step_);
-    std::cout << "IMU enabled." << std::endl;
-    gyro_enable(gyro_, time_step_);
-    std::cout << "Gyro enabled." << std::endl;
-    
-    robot_step(time_step_);
+    imu_init2(time_step_);
 }
 
 // Eigen::Vector3f RobotModel::forwardKinematics(int leg) const {
