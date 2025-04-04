@@ -50,12 +50,10 @@ void robot_init(){
 void robot_cleanup(){
     wb_robot_cleanup();
 }
-void imu_init1(){
+void imu_init(int time_step_){
     imu_ = robot_get_device("inertial unit");
     accelerometer_ = robot_get_device("accelerometer");
     gyro_ = robot_get_device("gyro");
-}
-void imu_init2(int time_step_){
     accelerometer_enable(accelerometer_, time_step_);
     std::cout << "Accelerometer enabled." << std::endl;
     inertial_unit_enable(imu_, time_step_);
@@ -65,11 +63,9 @@ void imu_init2(int time_step_){
     
     robot_step(time_step_);
 }
-void motor_and_sensor_init1(int num,const char* motorname[],const char* sensorname[]){
+void motor_and_sensor_init(int num,int time_step_,const char* motorname[],const char* sensorname[]){
     motors_[num]=robot_get_device(motorname[num]);
     sensors_[num]=robot_get_device(sensorname[num]);
-}
-void motor_and_sensor_init2(int num,int time_step_){
     motor_enable_torque_feedback(motors_[num], time_step_);
     position_sensor_enable(sensors_[num], time_step_);
     motor_set_velocity(motors_[num], 0);   // 设置零速度

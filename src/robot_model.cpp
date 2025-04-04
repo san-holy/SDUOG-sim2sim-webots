@@ -47,12 +47,8 @@ RobotModel::RobotModel(int time_step) : time_step_(time_step) {
         "RR_calf_joint_sensor"
     };
 
-    for (int i = 0; i < 12; ++i) {
-        motor_and_sensor_init1(i, motor_names, sensor_names);
-    }
 
     
-    imu_init1(); 
     
 
     // 初始化容器大小
@@ -216,14 +212,14 @@ void RobotModel::zerodriftcontrol(const double* torques){
 void RobotModel::initializeDevices() {
     // 初始化电机和传感器
     for(int i = 0; i < 12; ++i) {
-        motor_and_sensor_init2(i,time_step_);
+        motor_and_sensor_init(i,time_step_, motor_names, sensor_names);
         // motor_data_last[i] = wb_position_sensor_get_value(sensors_[i]);
         // std::cout << "Default position for motor " << i << ": " << default_dof_pos[i] << std::endl;
     }
     // std::cout << "Default positions set." << std::endl;
 
     // 初始化加速度计、IMU、陀螺仪
-    imu_init2(time_step_);
+    imu_init(time_step_);
 }
 
 // Eigen::Vector3f RobotModel::forwardKinematics(int leg) const {

@@ -27,8 +27,6 @@ extern WbDeviceTag gyro_;
     const double* gyro_get_values(WbDeviceTag gyro_);
     void robot_init();
     void robot_cleanup();
-    void imu_init1();
-    void imu_init2(int time_step_);
-    void motor_and_sensor_init1(int num,const char* motorname[],const char* sensorname[]);
-    void motor_and_sensor_init2(int num,int time_step_);
+    void imu_init(int time_step_);
+    void motor_and_sensor_init(int num,int time_step_,const char* motorname[],const char* sensorname[]);
 #endif
