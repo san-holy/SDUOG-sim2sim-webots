@@ -111,7 +111,15 @@ RobotModel::RobotModel(int time_step) : time_step_(time_step) {
         time_step_ / 1000.0  // 转换为秒
     );
 
-    initializeDevices();
+    // 初始化电机和传感器
+    for(int i = 0; i < 12; ++i) {
+        motor_and_sensor_init(i,time_step_,motor_names, sensor_names);
+        // motor_data_last[i] = wb_position_sensor_get_value(sensors_[i]);
+        // std::cout << "Default position for motor " << i << ": " << default_dof_pos[i] << std::endl;
+    }
+    // std::cout << "Default positions set." << std::endl;
+    imu_init(time_step_);
+    //initializeDevices();
 }
 
 RobotModel::~RobotModel() {
@@ -209,18 +217,12 @@ void RobotModel::zerodriftcontrol(const double* torques){
     }
 }
 
-void RobotModel::initializeDevices() {
-    // 初始化电机和传感器
-    for(int i = 0; i < 12; ++i) {
-        motor_and_sensor_init(i,time_step_, motor_names, sensor_names);
-        // motor_data_last[i] = wb_position_sensor_get_value(sensors_[i]);
-        // std::cout << "Default position for motor " << i << ": " << default_dof_pos[i] << std::endl;
-    }
-    // std::cout << "Default positions set." << std::endl;
+//void RobotModel::initializeDevices() {
+    
 
     // 初始化加速度计、IMU、陀螺仪
-    imu_init(time_step_);
-}
+
+//}
 
 // Eigen::Vector3f RobotModel::forwardKinematics(int leg) const {
 
