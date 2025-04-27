@@ -8,7 +8,7 @@
 
 #define TIME_STEP 5
 
-robot_control::obs_lcmt computeObs(const Eigen::Vector3f& lin_vel, const Eigen::Vector3f& ang_vel , double* gravity, double* commands, double* motor_pos, double* motor_datas, const std::vector<float>& heights, double time){
+robot_control::obs_lcmt computeObs(const Eigen::Vector3f& lin_vel, const Eigen::Vector3f& ang_vel , double* gravity, double* commands, double* motor_pos, double* motor_datas, double time){
     robot_control::obs_lcmt obs;
     for(int i = 0; i < 3; i++){
         obs.base_lin_vel[i] = static_cast<float>(lin_vel[i]);
@@ -23,10 +23,10 @@ robot_control::obs_lcmt computeObs(const Eigen::Vector3f& lin_vel, const Eigen::
         obs.vel[i] = motor_datas[i + 12];
         obs.torque[i] = motor_datas[i + 24];
     }
-    for(int i = 0; i < heights.size(); i++){
-        obs.terrain[i] = heights[i] - 0.5;
-        // std::cout << obs.terrain[i] << " ";
-    }
+    // for(int i = 0; i < heights.size(); i++){
+    //     obs.terrain[i] = heights[i] - 0.5;
+    //     // std::cout << obs.terrain[i] << " ";
+    // }
     // std::cout << std::endl;
     obs.timestamp_us = time;
     return obs;
@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
         //}
         // 处理LCM消息
         for (int i = 0 ; i < 4 ; i++){
-            if (i ==0) lcm_handler.publishObs(computeObs(robot.getTorsoVelocity(), robot.getAngularVelocity(), robot.gravity, commands, robot.motor_data_error, robot.motor_data, heights, timer));
+            if (i ==0) lcm_handler.publishObs(computeObs(robot.getTorsoVelocity(), robot.getAngularVelocity(), robot.gravity, commands, robot.motor_data_error, robot.motor_data, timer));
         }
 
         // lcm_handler.publishObs(computeObs(robot.getTorsoVelocity(), robot.base_ang_vel, robot.gravity, commands, robot.motor_data_error, robot.motor_data, heights, timer));

@@ -74,7 +74,7 @@ def publish_actions(shared_state, policy, lc):
                 torch.tensor(current_msg.pos, device=device).unsqueeze(0) * 1.0,          # 形状 [1,12]
                 torch.tensor(current_msg.vel, device=device).unsqueeze(0) * 0.05,                  # 形状 [1,12]
                 torch.tensor(current_msg.torque, device=device).unsqueeze(0),
-                torch.tensor(current_msg.terrain, device=device).unsqueeze(0) * 5.0                        # 形状 [1,12]
+                # torch.tensor(current_msg.terrain, device=device).unsqueeze(0) * 5.0                        # 形状 [1,12]
             ]
 
             # # 拼接前检查维度
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     '''
     
     # 检查模型有效性
-    test_input = torch.randn(1, 236).to(device)  # 根据实际输入维度修改
+    test_input = torch.randn(1, 49).to(device)  # 根据实际输入维度修改
     with torch.no_grad():
         print("测试输出:", policy(test_input))
     
