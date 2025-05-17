@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/test.dir/main.cpp.o  -o test   -L/usr/share/c++-mscl  -Wl,-rpath,/usr/share/c++-mscl -lmscl -lstdc++ -lpthread 

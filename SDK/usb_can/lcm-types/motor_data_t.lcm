@@ -1,0 +1,5 @@
+struct motor_data {
+    double q[12];
+    double v[12];
+    double tau[12];
+}

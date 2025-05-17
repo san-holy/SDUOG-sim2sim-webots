@@ -1,0 +1,1 @@
+lcmtypes/imu_data.class lcmtypes/motor_command.class lcmtypes/motor_data.class

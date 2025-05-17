@@ -5,9 +5,8 @@
 #include "terrain_estimator.h"
 #include <iostream>
 #include "controller_listener.h"
-
+#include "motor_SDK.h"
 #define TIME_STEP 5
-
 robot_control::obs_lcmt computeObs(const Eigen::Vector3f& lin_vel, const Eigen::Vector3f& ang_vel , double* gravity, double* commands, double* motor_pos, double* motor_datas, const std::vector<float>& heights, double time){
     robot_control::obs_lcmt obs;
     for(int i = 0; i < 3; i++){
@@ -33,7 +32,7 @@ robot_control::obs_lcmt computeObs(const Eigen::Vector3f& lin_vel, const Eigen::
 }
 
 int main(int argc, char **argv) {
-    robot_init();
+    // robot_init();
 
     double timer = 0;
     
@@ -51,7 +50,8 @@ int main(int argc, char **argv) {
     // robot.initializeDevices();
     std::cout << "robot initialized" << std::endl;
 
-    while (robot_step(TIME_STEP) != -1) {
+    while (true) {
+        auto start_time = std::chrono::steady_clock::now();
         timer += TIME_STEP/1000.0;
         // std::cout << "time: " << timer << std::endl;
         robot.updateSensorData();
@@ -78,7 +78,6 @@ int main(int argc, char **argv) {
         for (int i = 0 ; i < 4 ; i++){
             if (i ==0) lcm_handler.publishObs(computeObs(robot.getTorsoVelocity(), robot.getAngularVelocity(), robot.gravity, commands, robot.motor_data_error, robot.motor_data, heights, timer));
         }
-
         // lcm_handler.publishObs(computeObs(robot.getTorsoVelocity(), robot.base_ang_vel, robot.gravity, commands, robot.motor_data_error, robot.motor_data, heights, timer));
         // 应用控制
         if (!robot.standfinish) 
@@ -108,6 +107,6 @@ int main(int argc, char **argv) {
         logger.logData(timer, robot.getTorsoVelocity(), robot.base_ang_vel, robot.gravity, robot.motor_data);
     }
 
-    robot_cleanup();
+    // robot_cleanup();
     return 0;
 }//test

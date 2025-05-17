@@ -1,0 +1,7 @@
+struct motor_command {
+    double qDes[12];
+    double vDes[12];
+    double tauff[12];
+    double Kp[12];
+    double Kd[12];
+}

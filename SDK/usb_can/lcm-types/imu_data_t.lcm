@@ -1,0 +1,6 @@
+struct imu_data {
+    float linearAcc[3];
+    float angularVel[3];
+    float rpy[3];
+    float quat[4];
+}
