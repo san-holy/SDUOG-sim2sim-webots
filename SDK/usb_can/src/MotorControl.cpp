@@ -100,8 +100,6 @@ void MotorControl::SendTauCommand(uint32_t canID, double tau) {
     int32_t result = sendUSBCAN(device, _channel, &sendInfo, data);
     if (result == -1) {
         std::cerr << "Failed to send CAN frame. Return value: " << result << std::endl;
-        tauff[12]={0,0,0,0,0,0,0,0,0,0,0,0};
-
     }
 }
 

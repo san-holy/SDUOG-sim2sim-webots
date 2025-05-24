@@ -52,7 +52,7 @@ void motor(int i,double torque)
    }    
 }
 
-LegState state = legControl._state;
+LegState state = legControl.getState();
 double position_get_value(int i)
 {   
    switch (sensors_[i]/3)
