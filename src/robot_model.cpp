@@ -37,7 +37,7 @@ RobotModel::RobotModel(int time_step) : time_step_(time_step) {
     std::copy(DEFAULT_JOINT_ANGLES, DEFAULT_JOINT_ANGLES+12, target_joint_pos);
     
     // 设置站立控制增益
-    constexpr double KP[12] = {100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
+    constexpr double KP[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     constexpr double KD[12] = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
     std::copy(KP, KP+12, standing_kp);
     std::copy(KD, KD+12, standing_kd);
@@ -66,11 +66,11 @@ RobotModel::RobotModel(int time_step) : time_step_(time_step) {
     );
 
     // 初始化电机和传感器
-    for(int i = 0; i < 12; ++i) {
-        motors_init(motor_names[i], sensor_names[i]);
+    // for(int i = 0; i < 12; ++i) {
+        motors_init(motor_names[0], sensor_names[0]);
         // motor_data_last[i] = wb_position_sensor_get_value(sensors_[i]);
         // std::cout << "Default position for motor " << i << ": " << default_dof_pos[i] << std::endl;
-    }
+    // }
     // std::cout << "Default positions set." << std::endl;
     imu_init();
     //initializeDevices();
@@ -237,7 +237,7 @@ void RobotModel::updateSensorData() {
     // 更新关节数据 ======== 优化数据流 ========
     for (int i = 0; i < 12; ++i) {
         // 获取原始传感器数据
-        double new_pos = position_get_value(sensors_[i]);
+        double new_pos = position_get_value(i);
         if(i==0||i==3||i==1||i==2||i==7||i==8) new_pos*=-1;
         double new_vel = (new_pos - motor_data_last[i]) / dt;
 
@@ -419,15 +419,18 @@ void RobotModel::applyDamping(double damping_scale) {
     }
 }
 void RobotModel::printDebugInfo() const {
-    std::cout << "=== Contact Status ===" << std::endl;
-    for(int leg=0; leg<4; ++leg){
-        std::cout << "Leg " << leg << ": " 
-                  << (contact_status_[leg] ? "Contact" : "Swing") 
-                  << " Force: " << foot_forces_[leg].transpose() << " N\n";
-    }
+    // std::cout << "=== Contact Status ===" << std::endl;
+    // for(int leg=0; leg<4; ++leg){
+    //     std::cout << "Leg " << leg << ": " 
+    //               << (contact_status_[leg] ? "Contact" : "Swing") 
+    //               << " Force: " << foot_forces_[leg].transpose() << " N\n";
+    // }
     
-    std::cout << "\n=== Velocity Estimate ===" << std::endl;
-    std::cout << "Linear: " << torso_velocity_.transpose() << " m/s\n";
-    std::cout << "Angular: " << angular_velocity_.transpose() << " rad/s\n";
+    // std::cout << "\n=== Velocity Estimate ===" << std::endl;
+    // std::cout << "Linear: " << torso_velocity_.transpose() << " m/s\n";
+    // std::cout << "Angular: " << angular_velocity_.transpose() << " rad/s\n";
+
+    
+
     
 }
