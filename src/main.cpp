@@ -6,6 +6,8 @@
 #include <iostream>
 #include "controller_listener.h"
 #include "motor_SDK.h"
+#include <chrono>
+#include <thread>
 #define TIME_STEP 5
 robot_control::obs_lcmt computeObs(const Eigen::Vector3f& lin_vel, const Eigen::Vector3f& ang_vel , double* gravity, double* commands, double* motor_pos, double* motor_datas, const std::vector<float>& heights, double time){
     robot_control::obs_lcmt obs;
@@ -52,6 +54,9 @@ int main(int argc, char **argv) {
     
     // robot.initializeDevices();
     std::cout << "robot initialized" << std::endl;
+
+    const std::chrono::microseconds period(5000);  // 5ms = 5000us
+    auto next_time = std::chrono::steady_clock::now();
 
     while (true) {
         auto start_time = std::chrono::steady_clock::now();
@@ -112,6 +117,10 @@ int main(int argc, char **argv) {
         // }
         // 记录数据
         logger.logData(timer, robot.getTorsoVelocity(), robot.base_ang_vel, robot.gravity, robot.motor_data);
+        
+        // 计算并等待到下一个周期
+        next_time += period;
+        std::this_thread::sleep_until(next_time);
     }
 
     // robot_cleanup();
