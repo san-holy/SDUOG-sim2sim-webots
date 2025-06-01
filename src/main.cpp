@@ -6,6 +6,8 @@
 #include <iostream>
 #include "controller_listener.h"
 #include "motor_SDK.h"
+#include <chrono>
+#include <thread>
 #define TIME_STEP 5
 robot_control::obs_lcmt computeObs(const Eigen::Vector3f& lin_vel, const Eigen::Vector3f& ang_vel , double* gravity, double* commands, double* motor_pos, double* motor_datas, const std::vector<float>& heights, double time){
     robot_control::obs_lcmt obs;
@@ -35,11 +37,14 @@ int main(int argc, char **argv) {
     // robot_init();
 
     double timer = 0;
+    std::cout << "robot init" << std::endl;
     
     RobotModel robot(TIME_STEP);
+    std::cout << "robot model initialized" << std::endl;
     TerrainEstimator terrain(robot);
     DataLogger logger("log.csv");
     TorqueBuffer buffer;
+    std::cout << "buffer initialized" << std::endl;
     controller_ToqueBuffer controller_buffer;
     LCMHandler lcm_handler(buffer);
     controller_LCMHandler controller_lcm_handler(controller_buffer);
@@ -50,61 +55,72 @@ int main(int argc, char **argv) {
     // robot.initializeDevices();
     std::cout << "robot initialized" << std::endl;
 
+    const std::chrono::microseconds period(5000);  // 5ms = 5000us
+    auto next_time = std::chrono::steady_clock::now();
+
     while (true) {
         auto start_time = std::chrono::steady_clock::now();
         timer += TIME_STEP/1000.0;
         // std::cout << "time: " << timer << std::endl;
+        std::cout << "time: " << std::endl;
+
         robot.updateSensorData();
         terrain.estimateTerrain();
 
-        const auto& heights = terrain.getHeightMeasurements();
+        // const auto& heights = terrain.getHeightMeasurements();
 
         
-        //if(收到心跳包){
-            exlcm::example_t example_msg;
-            gamepad_handler.handleMessage(&example_msg);
-            //gamepad_handler.handleMessage(&example_msg);
-            bool has_commands = controller_buffer.try_pop(example_msg);
-            if (has_commands) {
-                commands[0] = static_cast<double>(gamepad_handler.speed_x);
-                commands[1] = static_cast<double>(gamepad_handler.speed_y);
-                commands[2] = static_cast<double>(gamepad_handler.yaw);
-                commands[3] = static_cast<double>(gamepad_handler.height);
-            }
-            //这里将原来GamepadHandler中handleMessage函数内置的四个元素拿了出来，直接归属于GamepadHandler类，
-            //这样方便改变commands的值，下面的lcm_handler.publishObs函数就不需要再改了
-        //}
-        // 处理LCM消息
-        for (int i = 0 ; i < 4 ; i++){
-            if (i ==0) lcm_handler.publishObs(computeObs(robot.getTorsoVelocity(), robot.getAngularVelocity(), robot.gravity, commands, robot.motor_data_error, robot.motor_data, heights, timer));
-        }
-        // lcm_handler.publishObs(computeObs(robot.getTorsoVelocity(), robot.base_ang_vel, robot.gravity, commands, robot.motor_data_error, robot.motor_data, heights, timer));
-        // 应用控制
-        if (!robot.standfinish) 
-            robot.slowToStandingPosition();
-        else {
-            robot_control::actions_lcmt torque_msg;
-            bool has_torque = buffer.try_pop(torque_msg);
+        // //if(收到心跳包){
+        //     exlcm::example_t example_msg;
+        //     gamepad_handler.handleMessage(&example_msg);
+        //     //gamepad_handler.handleMessage(&example_msg);
+        //     bool has_commands = controller_buffer.try_pop(example_msg);
+        //     if (has_commands) {
+        //         commands[0] = static_cast<double>(gamepad_handler.speed_x);
+        //         commands[1] = static_cast<double>(gamepad_handler.speed_y);
+        //         commands[2] = static_cast<double>(gamepad_handler.yaw);
+        //         commands[3] = static_cast<double>(gamepad_handler.height);
+        //     }
+        //     //这里将原来GamepadHandler中handleMessage函数内置的四个元素拿了出来，直接归属于GamepadHandler类，
+        //     //这样方便改变commands的值，下面的lcm_handler.publishObs函数就不需要再改了
+        // //}
+        // // 处理LCM消息
+        // for (int i = 0 ; i < 4 ; i++){
+        //     if (i ==0) lcm_handler.publishObs(computeObs(robot.getTorsoVelocity(), robot.getAngularVelocity(), robot.gravity, commands, robot.motor_data_error, robot.motor_data, heights, timer));
+        // }
+        // // lcm_handler.publishObs(computeObs(robot.getTorsoVelocity(), robot.base_ang_vel, robot.gravity, commands, robot.motor_data_error, robot.motor_data, heights, timer));
+        // // 应用控制
+        // // if (!robot.standfinish) 
+        //     // robot.slowToStandingPosition();
+        // // else {
+        //     robot_control::actions_lcmt torque_msg;
+        //     bool has_torque = buffer.try_pop(torque_msg);
             
-            if (has_torque) {
-                robot.zerodriftcontrol(torque_msg.torque);
-                robot.applyTorques(torque_msg.torque);
-                robot.last_torque_time = timer; // 记录最后收到力矩的时间
-            } 
-            else {
-                // 超过10ms没有收到力矩则进入软急停
-                if(timer - robot.last_torque_time > 0.02) {
-                    robot.applyDamping(3.0); // 增强阻尼系数
-                }
-                else {
-                    robot.zerodriftcontrol(robot.ACTIONS);
-                    robot.applyTorques(robot.ACTIONS);
-                    // robot.applyDamping(1.0); // 普通阻尼模式
-                }
-            }
-        }
+        //     if (has_torque) {
+        //         // robot.zerodriftcontrol(torque_msg.torque);
+        //         // robot.applyTorques(torque_msg.torque);
+        //         robot.last_torque_time = timer; // 记录最后收到力矩的时间
+        //     } 
+        //     else {
+        //         // 超过10ms没有收到力矩则进入软急停
+        //         if(timer - robot.last_torque_time > 0.02) {
+        //             // robot.applyDamping(3.0); // 增强阻尼系数
+        //             continue;
+        //         }
+        //         else {
+        //             continue;
+        //             // robot.zerodriftcontrol(robot.ACTIONS);
+        //             // robot.applyTorques(robot.ACTIONS);
+        //             // robot.applyDamping(1.0); // 普通阻尼模式
+        //         }
+        //     }
+        // }
         // 记录数据
         logger.logData(timer, robot.getTorsoVelocity(), robot.base_ang_vel, robot.gravity, robot.motor_data);
+        
+        // 计算并等待到下一个周期
+        next_time += period;
+        std::this_thread::sleep_until(next_time);
     }
 
     // robot_cleanup();

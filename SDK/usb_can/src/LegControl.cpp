@@ -126,6 +126,7 @@ void LegControl::send2(double pos_des[12], double vel_des[12], double Kp[12] , d
 
 // 接收第一个模块的反馈数据（前腿）
 void LegControl::RecvDevice1Data() {
+    std::cout << "RecvDevice1Data thread started." << std::endl;
     while (running) {
 
         int32_t result = readUSBCAN(device1, &readDevice1Channel, &readDevice1Info, data1, timeout);
@@ -151,6 +152,7 @@ void LegControl::RecvDevice1Data() {
                     _state.rf_v[motorIndex] = velocity;
                     _state.rf_tau[motorIndex] = torqueNm;
                 }
+                std::cout << "1" << std::endl;
             }
             else if (readDevice1Channel == 2) { // lf腿的三个电机
                 uint16_t positionRaw = (static_cast<uint16_t>(data1[1]) << 8) | static_cast<uint16_t>(data1[2]);
