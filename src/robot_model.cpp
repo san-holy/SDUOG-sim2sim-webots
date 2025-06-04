@@ -1,5 +1,7 @@
 #include "robot_model.h"//把enable使能写入初始化函数init()，作为一个新的接口，在今后只需要改动robot_model的头文件而非对其进行代码改动，使得其成为一个通用程序
 #include <iostream>
+#include <unistd.h>
+#include <fstream> 
 
 RobotModel::RobotModel(int time_step) : time_step_(time_step) {
     // 设备初始化
@@ -38,7 +40,7 @@ RobotModel::RobotModel(int time_step) : time_step_(time_step) {
     
     // 设置站立控制增益
     constexpr double KP[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    constexpr double KD[12] = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
+    constexpr double KD[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     std::copy(KP, KP+12, standing_kp);
     std::copy(KD, KD+12, standing_kd);
 
@@ -86,6 +88,12 @@ RobotModel::~RobotModel() {
 
 void RobotModel::slowToStandingPosition() {
     const double dt = time_step_ / 1000.0; // 转换为秒
+
+    // std::string filename ="/home/bane/桌面/renxing/sngg.csv";
+    // std::ofstream file("/home/bane/桌面/renxing/sngg.csv", std::ios::app); // 以追加模式打开文件
+    double torques[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+
+    double desired_pos[12];
     
     if (!initialized) {
         // 第一次调用时记录初始位置
@@ -103,40 +111,88 @@ void RobotModel::slowToStandingPosition() {
         double ratio = std::min(elapsed_time / transition_time, 1.0);
         
         // 计算期望位置
-        double desired_pos[12];
+        // double desired_pos[12];
         for(int i=0; i<12; ++i){
             desired_pos[i] = init_joint_pos[i] + 
                            (target_joint_pos[i] - init_joint_pos[i]) * ratio;
         }
         
         // 应用PD控制
+        // double torques[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+        
         for(int i=0; i<12; ++i){
+
             double error = desired_pos[i] - joint_positions_[i];
-            double torque = standing_kp[i] * error - 
+            torques[i] = standing_kp[i] * error - 
                           standing_kd[i] * joint_velocities_[i];
-            if(i==0||i==3||i==1||i==2||i==7||i==8) torque*=-1;
-            motor(motors_[i], torque);
+
+            // file << std::fixed << i << ',' << torque << std::endl; // 写入数
+
+            if(i==0||i==3||i==1||i==2||i==7||i==8) torques[i]*=-1;
+            // motor(motors_[i], torque);
             if(i==0||i==3||i==1||i==2||i==7||i==8) motor_data_last[i] = position_get_value(sensors_[i])*(-1.0);
             else motor_data_last[i] = position_get_value(sensors_[i]);
+                
+            // motor_data_last[i + 24] = desired_pos[i]/ACTION_SCALE; // 这里是将站立后最后一刻的目标位置作为action回传给强化学习策略   
+            // motor(motors_[i], torque);
+            // else motor_data_last[i] = position_get_value(sensors_[i]);
             motor_data_last[i + 24] = desired_pos[i]/ACTION_SCALE; // 这里是将站立后最后一刻的目标位置作为action回传给强化学习策略
-            joint_torques_[i] = torque;
+            joint_torques_[i] = torques[i];
         }
+        send_motor_commands(torques);
+
     } else {
         // 过渡完成后保持目标位置
         for(int i=0; i<12; ++i){
             double error = target_joint_pos[i] - joint_positions_[i];
-            double torque = standing_kp[i] * error - 
+            torques[i] = standing_kp[i] * error - 
                           standing_kd[i] * joint_velocities_[i];
-            if(i==0||i==3||i==1||i==2||i==7||i==8) torque*=-1;
-            motor(motors_[i], torque);
-            if(i==0||i==3||i==1||i==2||i==7||i==8) motor_data_last[i] =(sensors_[i])*(-1.0);
+            if(i==0||i==3||i==1||i==2||i==7||i==8) torques[i]*=-1;
+            // motor(motors_[i], torque);
+            if(i==0||i==3||i==1||i==2||i==7||i==8) motor_data_last[i] = position_get_value(sensors_[i])*(-1.0);
             else motor_data_last[i] = position_get_value(sensors_[i]);
+
             motor_data_last[i + 24] = target_joint_pos[i]/ACTION_SCALE;
-            joint_torques_[i] = torque;
+            joint_torques_[i] = torques[i];
             standfinish = true;
         }
+        send_motor_commands(torques);
     }
 }
+
+void RobotModel::send_motor_commands(double torques[12]){
+
+
+    motor(motors_[0], torques[0]);
+    motor(motors_[6], torques[6]);
+    usleep(200);
+
+    motor(motors_[3], torques[3]);
+    motor(motors_[9], torques[9]);
+    usleep(200);
+
+    motor(motors_[1], torques[1]);
+    motor(motors_[7], torques[7]);
+    usleep(200);
+
+    motor(motors_[4], torques[4]);
+    motor(motors_[10], torques[10]);
+    usleep(200);
+
+    motor(motors_[2], torques[2]);
+    motor(motors_[8], torques[8]);
+    usleep(200);
+    
+    motor(motors_[5], torques[5]);
+    motor(motors_[11], torques[11]);
+    usleep(200);
+
+  
+
+} 
+
+
+
 void RobotModel::zerodriftcontrol(const double* torques){
     double dt = time_step_/1000.0;
     if(!zerodriftfinish){
@@ -248,6 +304,11 @@ void RobotModel::updateSensorData() {
        
         // 更新数据存储
         motor_data[i] = new_pos;
+
+        
+        
+
+
         motor_data_error[i] = new_pos - default_dof_pos[i];
         motor_data[i + 12] = filtered_vel[i];
         motor_data[i + 24] = motor_data_last[i + 24];
@@ -256,9 +317,13 @@ void RobotModel::updateSensorData() {
         joint_positions_[i] = static_cast<float>(motor_data[i]);
         joint_velocities_[i] = static_cast<float>(motor_data[i + 12]);
         
+
+        //检验
+        // std::cout << "motor_data[" << i << "]: " << motor_data_last[i] << std::endl;
         // 更新历史数据
         motor_data_last[i] = motor_data[i];
         motor_data_last[i + 12] = motor_data[i + 12];
+
     }
     // std::cout << "motor data updated." << std::endl;
 
@@ -272,7 +337,7 @@ void RobotModel::updateSensorData() {
 
     quat_rotate_inverse(quat, v, gravity);
 
-    // 转换关节数据到Eigen类型
+    // 转换关节数据到Eigen类型sensors_
     Vector12d joint_pos, joint_torque;
     for(int i=0; i<12; ++i){
         joint_pos[i] = static_cast<double>(joint_positions_[i]);

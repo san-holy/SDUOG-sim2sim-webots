@@ -8,6 +8,7 @@
 #include "motor_SDK.h"
 #include <chrono>
 #include <thread>
+#include <unistd.h> 
 #define TIME_STEP 5
 robot_control::obs_lcmt computeObs(const Eigen::Vector3f& lin_vel, const Eigen::Vector3f& ang_vel , double* gravity, double* commands, double* motor_pos, double* motor_datas, const std::vector<float>& heights, double time){
     robot_control::obs_lcmt obs;
@@ -59,10 +60,11 @@ int main(int argc, char **argv) {
     auto next_time = std::chrono::steady_clock::now();
 
     while (true) {
+        usleep (100);
         auto start_time = std::chrono::steady_clock::now();
         timer += TIME_STEP/1000.0;
         // std::cout << "time: " << timer << std::endl;
-        std::cout << "time: " << std::endl;
+        // std::cout << "time: " << std::endl;
 
         robot.updateSensorData();
         terrain.estimateTerrain();
@@ -91,7 +93,7 @@ int main(int argc, char **argv) {
         // // lcm_handler.publishObs(computeObs(robot.getTorsoVelocity(), robot.base_ang_vel, robot.gravity, commands, robot.motor_data_error, robot.motor_data, heights, timer));
         // // 应用控制
         // // if (!robot.standfinish) 
-        //     // robot.slowToStandingPosition();
+            robot.slowToStandingPosition();
         // // else {
         //     robot_control::actions_lcmt torque_msg;
         //     bool has_torque = buffer.try_pop(torque_msg);
@@ -116,6 +118,9 @@ int main(int argc, char **argv) {
         //     }
         // }
         // 记录数据
+        // logger.logData(timer, robot.getTorsoVelocity(), robot.base_ang_vel, robot.gravity, robot.motor_data);
+        //
+        
         logger.logData(timer, robot.getTorsoVelocity(), robot.base_ang_vel, robot.gravity, robot.motor_data);
         
         // 计算并等待到下一个周期

@@ -46,10 +46,10 @@ void motor(int i,double torque)
 {   
    switch(motors_[i]/3)
    {
-   case 0:legControl.LF.SendTauCommand(motors_[i]%3+1, torque); break;
-   case 1:legControl.LH.SendTauCommand(motors_[i]%3+1, torque); break;
-   case 2:legControl.RF.SendTauCommand(motors_[i]%3+1, torque); break;
-   case 3:legControl.RH.SendTauCommand(motors_[i]%3+1, torque); break;
+   case 0:legControl.LF.SendTauCommand(motors_[i]%3+1, 0); break;
+   case 1:legControl.RF.SendTauCommand(motors_[i]%3+1, 0); break;
+   case 2:legControl.LH.SendTauCommand(motors_[i]%3+1, 0); break;
+   case 3:legControl.RH.SendTauCommand(motors_[i]%3+1, 0); break;
    }    
 }
 
@@ -57,12 +57,13 @@ void motor(int i,double torque)
 double position_get_value(int i)
 {   
     LegState state = legControl.getState();
+   
     switch (sensors_[i]/3)
     {
-    case 0: position = state.lf_q[sensors_[i]%3]; break;
-    case 1: position = state.lh_q[sensors_[i]%3]; break;
-    case 2: position = state.rf_q[sensors_[i]%3]; break;
-    case 3: position = state.rh_q[sensors_[i]%3]; break;
+    case 0: position = state.lf_q[sensors_[i]%3]+1; break;
+    case 1: position = state.rf_q[sensors_[i]%3]+1; break;
+    case 2: position = state.lh_q[sensors_[i]%3]+1; break;
+    case 3: position = state.rh_q[sensors_[i]%3]+1; break;
     }
     return position;
 }

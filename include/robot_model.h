@@ -17,6 +17,8 @@ public:
     void slowToStandingPosition(); // 站立姿态渐进方法
     void applyDamping(double damping_scale = 1.0);
     void zerodriftcontrol(const double* torques); // 零位移控制
+    void send_motor_commands(double torques[12]); // 发送电机指令
+
 
     double last_torque_time = 0; // 记录最后收到力矩的时间
 
