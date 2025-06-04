@@ -56,15 +56,16 @@ void LegControl::LegInit() {
     }
 
     // 将设备句柄传递给 MotorControl 对象
-    RF = MotorControl(device1, channel1);
-    LF = MotorControl(device1, channel2);
-    RH = MotorControl(device2, channel1);
-    LH = MotorControl(device2, channel2);
+    LF = MotorControl(device1, channel1);
+    RF = MotorControl(device1, channel2);
+    LH = MotorControl(device2, channel1);
+    RH = MotorControl(device2, channel2);
 
    
     RF.MotorInit();
-    LF.MotorInit();
+    
     RH.MotorInit();
+    LF.MotorInit();
     LH.MotorInit();
     running = true;
 
@@ -130,10 +131,13 @@ void LegControl::RecvDevice1Data() {
     while (running) {
 
         int32_t result = readUSBCAN(device1, &readDevice1Channel, &readDevice1Info, data1, timeout);
-        
+        // std::cout << "M1result"<< result << std::endl;
+        // std::cout << "channel1: " << readDevice1Channel << std::endl;
         if (result == 0) {  // 成功接收一帧数据
+            
             // 解析数据
-            if (readDevice1Channel == 1) { // rf腿的三个电机
+            if (readDevice1Channel == 2) { // rf腿的三个电机
+                
                 uint16_t positionRaw = (static_cast<uint16_t>(data1[1]) << 8) | static_cast<uint16_t>(data1[2]);
                 double position = (static_cast<double>(positionRaw) / 65535.0) * (8.0 * M_PI) - (4.0 * M_PI);
 
@@ -144,7 +148,9 @@ void LegControl::RecvDevice1Data() {
                 double torqueNm = (static_cast<double>(torqueRaw) - 2047.0) / 2047.0 * 48.0;
 
                 unsigned char id = data1[0];
+                // std::cout << "canID:" << id << "position:" << position << std::endl;
                 int motorIndex = static_cast<int>(id) - 1;
+                std::cout << "canID:" << motorIndex << "position:" << position << std::endl;
 
                 if (motorIndex >= 0 && motorIndex < 3) {
                     std::lock_guard<std::mutex> lock(stateMutex); // 锁定互斥锁
@@ -152,9 +158,9 @@ void LegControl::RecvDevice1Data() {
                     _state.rf_v[motorIndex] = velocity;
                     _state.rf_tau[motorIndex] = torqueNm;
                 }
-                std::cout << "1" << std::endl;
+                // std::cout << "canID:" << data1[0] << "position:" << position << std::endl;
             }
-            else if (readDevice1Channel == 2) { // lf腿的三个电机
+            else if (readDevice1Channel == 1) { // lf腿的三个电机
                 uint16_t positionRaw = (static_cast<uint16_t>(data1[1]) << 8) | static_cast<uint16_t>(data1[2]);
                 double position = (static_cast<double>(positionRaw) / 65535.0) * (8.0 * M_PI) - (4.0 * M_PI);
 
@@ -165,6 +171,7 @@ void LegControl::RecvDevice1Data() {
                 double torqueNm = (static_cast<double>(torqueRaw) - 2047.0) / 2047.0 * 48.0;
 
                 unsigned char id = data1[0];
+                std::cout << "canID:" << id << "position:" << position << std::endl;
                 int motorIndex = static_cast<int>(id) - 1;
 
                 if (motorIndex >= 0 && motorIndex < 3) {
@@ -173,6 +180,8 @@ void LegControl::RecvDevice1Data() {
                     _state.lf_v[motorIndex] = velocity;
                     _state.lf_tau[motorIndex] = torqueNm;
                 }
+
+                // std::cout << "canID:" << data1[0] << "position:" << position << std::endl;
             }
         }
         else if (result == -1) {
@@ -185,9 +194,13 @@ void LegControl::RecvDevice1Data() {
 void LegControl::RecvDevice2Data() {
     while (running) {
         int32_t result = readUSBCAN(device2, &readDevice2Channel, &readDevice2Info, data2, timeout);
+        // std::cout << "M2result"<< result << std::endl;
+        // std::cout << "channel2: " << readDevice2Channel << std::endl;
         if (result == 0) {  // 成功接收一帧数据
+            std::cout << "2" << std::endl;
             // 解析数据
-            if (readDevice2Channel == 1) { // rh腿的三个电机
+            if (readDevice2Channel == 2 ) { // rh腿的三个电机
+            
                 uint16_t positionRaw = (static_cast<uint16_t>(data2[1]) << 8) | static_cast<uint16_t>(data2[2]);
                 double position = (static_cast<double>(positionRaw) / 65535.0) * (8.0 * M_PI) - (4.0 * M_PI);
 
@@ -206,8 +219,10 @@ void LegControl::RecvDevice2Data() {
                     _state.rh_v[motorIndex] = velocity;
                     _state.rh_tau[motorIndex] = torqueNm;
                 } 
+
+                // std::cout << "canID:" << id << "position:" << position << std::endl;
             }
-            else if (readDevice2Channel == 2) { // lh腿的三个电机
+            else if (readDevice2Channel == 1) { // lh腿的三个电机
                 uint16_t positionRaw = (static_cast<uint16_t>(data2[1]) << 8) | static_cast<uint16_t>(data2[2]);
                 double position = (static_cast<double>(positionRaw) / 65535.0) * (8.0 * M_PI) - (4.0 * M_PI);
 
@@ -226,6 +241,8 @@ void LegControl::RecvDevice2Data() {
                     _state.lh_v[motorIndex] = velocity;
                     _state.lh_tau[motorIndex] = torqueNm;
                 } 
+
+                // std::cout << "canID:" << id << "position:" << position << std::endl;
             }
         }
         else if (result == -1) {
