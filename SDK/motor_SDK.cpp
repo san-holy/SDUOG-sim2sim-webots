@@ -8,6 +8,7 @@
 int motors_[12] = {0,1,2,3,4,5,6,7,8,9,10,11};
 int sensors_[12] = {0,1,2,3,4,5,6,7,8,9,10,11};
 double position;
+double torque;
 int accelerometer_;
 int imu_;
 int gyro_; 
@@ -42,7 +43,7 @@ double* gy_get_values(int gyro_) {
 }
 
 LegControl legControl;
-void motor(int i,double torque)
+void motor(int i,double torques)
 {   
    switch(motors_[i]/3)
    {
@@ -67,6 +68,26 @@ double position_get_value(int i)
     }
     return position;
 }
+
+
+double torque_get_value(int i)
+{   
+    LegState state = legControl.getState();
+    switch (sensors_[i]/3)
+    {
+    case 0: torque = state.lf_tau[sensors_[i]%3]+1; break;
+    case 1: torque = state.rf_tau[sensors_[i]%3]+1; break;
+    case 2: torque = state.lh_tau[sensors_[i]%3]+1; break;
+    case 3: torque = state.rh_tau[sensors_[i]%3]+1; break;
+    }
+    return torque;
+}
+
+
+
+
+
+
 
 void motors_init(const int motorname,const int sensorname)
 {

@@ -17,6 +17,7 @@ MotorControl::~MotorControl() {
 
 bool MotorControl::MotorInit() {
     enableMotor();
+    // sleep(0.01);
     return true;
 }
 
@@ -101,6 +102,7 @@ void MotorControl::SendTauCommand(uint32_t canID, double tau) {
     if (result == -1) {
         std::cerr << "Failed to send CAN frame. Return value: " << result << std::endl;
     }
+    
 }
 
 void MotorControl::SendHybridCommand(uint32_t canID, double pos, double vel, double kp, double kd, double tau) {
@@ -122,7 +124,7 @@ void MotorControl::enableMotor() {
         if (result == -1) {
             std::cerr << "Failed to enable the Motor!. Return value: " << result << std::endl;
         }
-        usleep(100);
+        usleep(1000);
     }
 }
 

@@ -12,6 +12,7 @@
     extern int gyro_;  
     // void imuHandler(const std::string& channel, float value);   
     double position_get_value(int i);
+    double torque_get_value(int i);
     // void motor_enable_torque_feedback(int32_t tag,int time_step_);
     // void position_sensor_enable(int32_t tag,int time_step_);
     // void motor_set_velocity(int32_t tag,int time_step_);

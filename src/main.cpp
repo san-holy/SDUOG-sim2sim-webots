@@ -93,7 +93,8 @@ int main(int argc, char **argv) {
         // // lcm_handler.publishObs(computeObs(robot.getTorsoVelocity(), robot.base_ang_vel, robot.gravity, commands, robot.motor_data_error, robot.motor_data, heights, timer));
         // // 应用控制
         // // if (!robot.standfinish) 
-            robot.slowToStandingPosition();
+            // robot.slowToStandingPosition();
+            robot.torqueTest();
         // // else {
         //     robot_control::actions_lcmt torque_msg;
         //     bool has_torque = buffer.try_pop(torque_msg);

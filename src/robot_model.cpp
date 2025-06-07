@@ -39,8 +39,9 @@ RobotModel::RobotModel(int time_step) : time_step_(time_step) {
     std::copy(DEFAULT_JOINT_ANGLES, DEFAULT_JOINT_ANGLES+12, target_joint_pos);
     
     // 设置站立控制增益
-    constexpr double KP[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    constexpr double KP[12] = {0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0, 0};
     constexpr double KD[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
     std::copy(KP, KP+12, standing_kp);
     std::copy(KD, KD+12, standing_kd);
 
@@ -137,6 +138,7 @@ void RobotModel::slowToStandingPosition() {
             // motor(motors_[i], torque);
             // else motor_data_last[i] = position_get_value(sensors_[i]);
             motor_data_last[i + 24] = desired_pos[i]/ACTION_SCALE; // 这里是将站立后最后一刻的目标位置作为action回传给强化学习策略
+            // motor_data[i + 36] = torque_get_value(sensors_[i]);
             joint_torques_[i] = torques[i];
         }
         send_motor_commands(torques);
@@ -152,7 +154,10 @@ void RobotModel::slowToStandingPosition() {
             if(i==0||i==3||i==1||i==2||i==7||i==8) motor_data_last[i] = position_get_value(sensors_[i])*(-1.0);
             else motor_data_last[i] = position_get_value(sensors_[i]);
 
+
+            //修改读力矩
             motor_data_last[i + 24] = target_joint_pos[i]/ACTION_SCALE;
+            
             joint_torques_[i] = torques[i];
             standfinish = true;
         }
@@ -160,32 +165,64 @@ void RobotModel::slowToStandingPosition() {
     }
 }
 
+void RobotModel::torqueTest() {
+
+    double tourques[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+    send_motor_commands(tourques);
+}
+
+
+
+
+void RobotModel::read_torpues(){
+    motor_data[36] = torque_get_value(0);
+    motor_data[42] = torque_get_value(6);
+    motor_data[39] = torque_get_value(3);
+    motor_data[45] = torque_get_value(9);
+    usleep (500);
+
+    motor_data[37] = torque_get_value(1);
+    motor_data[43] = torque_get_value(7);
+    motor_data[40] = torque_get_value(4);
+    motor_data[46] = torque_get_value(10);
+    usleep (500);
+
+    motor_data[38] = torque_get_value(2);
+    motor_data[44] = torque_get_value(8);
+    motor_data[41] = torque_get_value(5);
+    motor_data[47] = torque_get_value(11);
+    usleep (500);
+}
+
+
+
+
 void RobotModel::send_motor_commands(double torques[12]){
 
 
     motor(motors_[0], torques[0]);
     motor(motors_[6], torques[6]);
-    usleep(200);
+    // usleep(250);
 
     motor(motors_[3], torques[3]);
     motor(motors_[9], torques[9]);
-    usleep(200);
+    usleep(500);
 
     motor(motors_[1], torques[1]);
     motor(motors_[7], torques[7]);
-    usleep(200);
+    // usleep(250);
 
     motor(motors_[4], torques[4]);
     motor(motors_[10], torques[10]);
-    usleep(200);
+    usleep(500);
 
     motor(motors_[2], torques[2]);
     motor(motors_[8], torques[8]);
-    usleep(200);
+    // usleep(250);
     
     motor(motors_[5], torques[5]);
     motor(motors_[11], torques[11]);
-    usleep(200);
+    usleep(500);
 
   
 
@@ -295,6 +332,8 @@ void RobotModel::updateSensorData() {
         // 获取原始传感器数据
         double new_pos = position_get_value(i);
         if(i==0||i==3||i==1||i==2||i==7||i==8) new_pos*=-1;
+        if(i==2||i==8) new_pos = new_pos + 0.99;
+        if(i==5||i==11) new_pos = new_pos - 0.99;
         double new_vel = (new_pos - motor_data_last[i]) / dt;
 
         // 关节速度滤波
@@ -312,6 +351,7 @@ void RobotModel::updateSensorData() {
         motor_data_error[i] = new_pos - default_dof_pos[i];
         motor_data[i + 12] = filtered_vel[i];
         motor_data[i + 24] = motor_data_last[i + 24];
+        motor_data[i + 36] = motor_data_last[i + 36];
         
         // 转换到float类型
         joint_positions_[i] = static_cast<float>(motor_data[i]);
